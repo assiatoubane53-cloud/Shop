@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Boutique En Ligne & Gestion Administrative</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        skybrand: {
+                            50: '#f0f9ff',
+                            100: '#e0f2fe',
+                            500: '#0ea5e9',
+                            600: '#0284c7',
+                            700: '#0369a1'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        .active-tab { border-bottom: 2px solid #0284c7; color: #0284c7; font-weight: 600; }
+    </style>
+</head>
+<body class="bg-gray-50 text-gray-800">
+    <header class="bg-white shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex flex-col sm:flex-row justify-between items-center gap-4">
+            <div>
+                <h1 class="text-2xl font-bold text-skybrand-700" id="shop-name-display">Ma Boutique En Ligne</h1>
+                <p class="text-sm text-gray-500">Boutique et gestion administrative</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="switchView('client')" id="btn-view-client" class="px-4 py-2 rounded-lg bg-skybrand-600 text-white hover:bg-skybrand-700">
+                    <i class="fa-solid fa-store mr-2"></i>Vue Client
+                </button>
+                <button onclick="switchView('admin')" id="btn-view-admin" class="px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200">
+                    <i class="fa-solid fa-gear mr-2"></i>Administration
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- VUE CLIENT -->
+        <section id="client-view">
+            <div class="bg-gradient-to-r from-skybrand-700 to-skybrand-500 rounded-2xl p-8 md:p-12 text-white mb-10">
+                <p class="uppercase tracking-widest text-sm mb-3">Bienvenue chez nous</p>
+                <h2 class="text-3xl md:text-5xl font-bold mb-4">Découvrez nos produits</h2>
+                <p class="text-skybrand-50 max-w-2xl">Une sélection de produits choisis avec soin. Commandez simplement et faites-vous livrer.</p>
+            </div>
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold">Notre catalogue</h2>
+                <span id="client-products-count" class="text-sm text-gray-500">0 produit(s)</span>
+            </div>
+            <div id="client-products-grid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </section>
+
+        <!-- VUE ADMINISTRATION -->
+        <section id="admin-view" class="hidden">
+            <div class="flex flex-col md:flex-row justify-between md:items-center gap-4 mb-8">
+                <div>
+                    <h2 class="text-3xl font-bold">Administration</h2>
+                    <p class="text-gray-500">Gérez votre boutique et vos commandes</p>
+                </div>
+                <button onclick="copyAdLink()" class="px-4 py-2 bg-skybrand-600 text-white rounded-lg hover:bg-skybrand-700">
+                    <i class="fa-solid fa-link mr-2"></i>Générer le lien client
+                </button>
+            </div>
+
+            <div class="border-b border-gray-200 mb-6 overflow-x-auto">
+                <nav class="flex gap-6 min-w-max">
+                    <button onclick="switchAdminTab('dashboard')" id="tab-dashboard" class="pb-3 active-tab">Tableau de bord</button>
+                    <button onclick="switchAdminTab('couriers')" id="tab-couriers" class="pb-3 text-gray-500">Livreurs & Stock</button>
+                    <button onclick="switchAdminTab('products')" id="tab-products" class="pb-3 text-gray-500">Produits</button>
+                    <button onclick="switchAdminTab('orders')" id="tab-orders" class="pb-3 text-gray-500">Commandes</button>
+                </nav>
+            </div>
+
+            <!-- TABLEAU DE BORD -->
+            <div id="admin-dashboard" class="admin-tab-content">
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500">Chiffre d'affaires estimé</p>
+                        <p id="dashboard-revenue" class="text-2xl font-bold mt-2">0 FCFA</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500">Commandes</p>
+                        <p id="dashboard-orders" class="text-2xl font-bold mt-2">0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500">Stock disponible</p>
+                        <p id="dashboard-stock" class="text-2xl font-bold mt-2">0</p>
+                    </div>
+                    <div class="bg-white p-5 rounded-xl shadow-sm border border-gray-100">
+                        <p class="text-sm text-gray-500">Articles chez les livreurs</p>
+                        <p id="dashboard-in-courier" class="text-2xl font-bold mt-2">0</p>
+                    </div>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-4">Aperçu des ventes</h3>
+                    <div class="w-full overflow-hidden">
+                        <svg viewBox="0 0 600 180" class="w-full h-44" role="img" aria-label="Graphique illustratif des ventes">
+                            <line x1="0" y1="150" x2="600" y2="150" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="0" y1="100" x2="600" y2="100" stroke="#e5e7eb" stroke-width="1"/>
+                            <line x1="0" y1="50" x2="600" y2="50" stroke="#e5e7eb" stroke-width="1"/>
+                            <polyline points="0,130 70,115 140,125 210,80 280,95 350,55 420,75 490,30 560,45 600,20" fill="none" stroke="#0284c7" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+                        </svg>
+                    </div>
+                    <p class="text-xs text-gray-400">Graphique illustratif — ne représente pas encore l’historique réel des ventes.</p>
+                </div>
+            </div>
+
+            <!-- LIVREURS ET STOCK -->
+            <div id="admin-couriers" class="admin-tab-content hidden">
+                <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                    <div class="bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="font-bold text-lg mb-4">Affecter du stock à un livreur</h3>
+                        <form id="courier-form" onsubmit="handleAssignCourier(event)" class="space-y-4">
+                            <div>
+                                <label for="courier-name" class="block text-sm font-medium mb-1">Nom du livreur</label>
+                                <input id="courier-name" required class="w-full border rounded-lg px-3 py-2" placeholder="Nom du livreur">
+                            </div>
+                            <div>
+                                <label for="courier-product" class="block text-sm font-medium mb-1">Produit</label>
+                                <select id="courier-product" required class="w-full border rounded-lg px-3 py-2"></select>
+                            </div>
+                            <div>
+                                <label for="courier-quantity" class="block text-sm font-medium mb-1">Quantité remise</label>
+                                <input id="courier-quantity" type="number" min="1" required class="w-full border rounded-lg px-3 py-2" placeholder="Ex. 5">
+                            </div>
+                            <button type="submit" class="w-full bg-skybrand-600 text-white rounded-lg py-2 hover:bg-skybrand-700">Enregistrer l’affectation</button>
+                        </form>
+                    </div>
+                    <div class="lg:col-span-2 bg-white p-6 rounded-xl shadow-sm">
+                        <h3 class="font-bold text-lg mb-4">Suivi des livreurs</h3>
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-sm text-left">
+                                <thead class="bg-gray-50 text-gray-500"><tr><th class="p-3">Livreur</th><th class="p-3">Produit</th><th class="p-3">Quantité</th><th class="p-3">Statut</th><th class="p-3">Action</th></tr></thead>
+                                <tbody id="couriers-table-body"></tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PRODUITS -->
+            <div id="admin-products" class="admin-tab-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6">
+                    <h3 class="font-bold text-lg mb-4">Paramètres de la boutique</h3>
+                    <form onsubmit="handleSaveShopName(event)" class="flex flex-col sm:flex-row gap-3">
+                        <input id="shop-name-input" class="flex-1 border rounded-lg px-3 py-2" placeholder="Nom de la boutique">
+                        <button class="px-5 py-2 bg-skybrand-600 text-white rounded-lg">Enregistrer le nom</button>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm mb-6">
+                    <h3 class="font-bold text-lg mb-4">Ajouter un produit</h3>
+                    <form id="product-form" onsubmit="handleAddProduct(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div><label for="product-name" class="block text-sm mb-1">Nom du produit</label><input id="product-name" required class="w-full border rounded-lg px-3 py-2"></div>
+                        <div><label for="product-price-dakar" class="block text-sm mb-1">Prix Dakar (FCFA)</label><input id="product-price-dakar" type="number" min="0" required class="w-full border rounded-lg px-3 py-2"></div>
+                        <div><label for="product-price-region" class="block text-sm mb-1">Prix régions (FCFA)</label><input id="product-price-region" type="number" min="0" required class="w-full border rounded-lg px-3 py-2"></div>
+                        <div><label for="product-stock" class="block text-sm mb-1">Stock initial</label><input id="product-stock" type="number" min="0" required class="w-full border rounded-lg px-3 py-2"></div>
+                        <div class="md:col-span-2"><label for="product-image" class="block text-sm mb-1">URL de l’image</label><input id="product-image" type="url" class="w-full border rounded-lg px-3 py-2" placeholder="https://..."></div>
+                        <div class="md:col-span-2"><label for="product-description" class="block text-sm mb-1">Description</label><textarea id="product-description" rows="3" class="w-full border rounded-lg px-3 py-2"></textarea></div>
+                        <div class="md:col-span-2"><button type="submit" class="px-5 py-2 bg-skybrand-600 text-white rounded-lg hover:bg-skybrand-700">Ajouter le produit</button></div>
+                    </form>
+                </div>
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <h3 class="font-bold text-lg mb-4">Liste des produits</h3>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-500"><tr><th class="p-3">Produit</th><th class="p-3">Prix Dakar</th><th class="p-3">Prix régions</th><th class="p-3">Stock</th><th class="p-3">Action</th></tr></thead>
+                            <tbody id="admin-products-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- COMMANDES -->
+            <div id="admin-orders" class="admin-tab-content hidden">
+                <div class="bg-white p-6 rounded-xl shadow-sm">
+                    <div class="flex flex-col sm:flex-row justify-between gap-3 mb-4">
+                        <div>
+                            <h3 class="font-bold text-lg">Commandes clients</h3>
+                            <p class="text-sm text-gray-500">Les commandes sont conservées dans le navigateur utilisé pour cette boutique.</p>
+                        </div>
+                        <button onclick="exportToCSV()" class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 self-start"><i class="fa-solid fa-file-csv mr-2"></i>Exporter CSV</button>
+                    </div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm text-left">
+                            <thead class="bg-gray-50 text-gray-500"><tr><th class="p-3">ID / Date</th><th class="p-3">Client / Téléphone</th><th class="p-3">Zone / Adresse</th><th class="p-3">Produit / Qté</th><th class="p-3">Total</th><th class="p-3">Paiement</th><th class="p-3">Stockage</th></tr></thead>
+                            <tbody id="orders-table-body"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- MODAL DE COMMANDE -->
+    <div id="order-modal" class="hidden fixed inset-0 z-50 bg-black/50 p-4 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6">
+            <div class="flex justify-between items-center mb-5">
+                <h3 class="text-xl font-bold">Finaliser ma commande</h3>
+                <button onclick="closeOrderModal()" class="text-gray-500 hover:text-gray-800" aria-label="Fermer"><i class="fa-solid fa-xmark text-xl"></i></button>
+            </div>
+            <form id="order-form" onsubmit="handleConfirmOrder(event)" class="space-y-4">
+                <input id="order-product-id" type="hidden">
+                <div><label for="customer-name" class="block text-sm font-medium mb-1">Nom complet</label><input id="customer-name" required class="w-full border rounded-lg px-3 py-2" placeholder="Votre nom"></div>
+                <div><label for="customer-phone" class="block text-sm font-medium mb-1">Téléphone</label><input id="customer-phone" type="tel" required class="w-full border rounded-lg px-3 py-2" placeholder="77 000 00 00"></div>
+                <div><label for="delivery-zone" class="block text-sm font-medium mb-1">Zone de livraison</label>
+                    <select id="delivery-zone" required class="w-full border rounded-lg px-3 py-2" onchange="updateOrderTotal()">
+                        <option value="Dakar">Dakar</option><option value="Région">Région</option>
+                    </select>
+                </div>
+                <div><label for="delivery-address" class="block text-sm font-medium mb-1">Adresse de livraison</label><textarea id="delivery-address" required rows="2" class="w-full border rounded-lg px-3 py-2" placeholder="Quartier, rue, repère..."></textarea></div>
+                <div><label for="order-quantity" class="block text-sm font-medium mb-1">Quantité</label><input id="order-quantity" type="number" min="1" value="1" required class="w-full border rounded-lg px-3 py-2" onchange="updateOrderTotal()" oninput="updateOrderTotal()"></div>
+                <div><label for="payment-method" class="block text-sm font-medium mb-1">Mode de paiement</label>
+                    <select id="payment-method" required class="w-full border rounded-lg px-3 py-2">
+                        <option value="Paiement à la livraison">Paiement à la livraison</option><option value="Wave">Wave</option><option value="Orange Money">Orange Money</option>
+                    </select>
+                </div>
+                <div class="bg-skybrand-50 rounded-lg p-4 flex justify-between items-center"><span class="font-medium">Total estimé</span><strong id="order-total" class="text-xl text-skybrand-700">0 FCFA</strong></div>
+                <button type="submit" class="w-full bg-skybrand-600 text-white rounded-lg py-3 font-semibold hover:bg-skybrand-700">Confirmer la commande</button>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL DE CONFIRMATION -->
+    <div id="success-modal" class="hidden fixed inset-0 z-50 bg-black/50 p-4 flex items-center justify-center">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md p-8 text-center">
+            <div class="w-16 h-16 rounded-full bg-green-100 text-green-600 flex items-center justify-center mx-auto mb-4"><i class="fa-solid fa-check text-2xl"></i></div>
+            <h3 class="text-2xl font-bold mb-2">Commande enregistrée !</h3>
+            <p class="text-gray-600 mb-2">Merci pour votre commande.</p>
+            <p id="success-order-id" class="font-semibold text-skybrand-700 mb-6"></p>
+            <button onclick="closeSuccessModal()" class="w-full bg-skybrand-600 text-white rounded-lg py-3">Fermer</button>
+        </div>
+    </div>
+
+    <div id="toast" class="hidden fixed bottom-5 right-5 z-[60] bg-gray-900 text-white px-5 py-3 rounded-lg shadow-lg"></div>
+
+    <script>
+        const defaultProducts = [
+            { id: 'p1', name: 'PERLIA — Sac en perles', priceDakar: 15000, priceRegion: 18000, stock: 12, image: '', description: 'Un sac en perles fait avec soin.' },
+            { id: 'p2', name: 'PERLIA — Accessoire artisanal', priceDakar: 10000, priceRegion: 13000, stock: 8, image: '', description: 'Un accessoire élégant pour compléter votre style.' }
+        ];
+
+        const state = {
+            shopName: localStorage.getItem('perlia_shop_name') || 'PERLIA Luxe',
+            products: JSON.parse(localStorage.getItem('perlia_products') || 'null') || defaultProducts,
+            orders: JSON.parse(localStorage.getItem('perlia_orders') || '[]'),
+            couriers: JSON.parse(localStorage.getItem('perlia_couriers') || '[]')
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const params = new URLSearchParams(window.location.search);
+            if (params.get('mode') === 'client') switchView('client');
+            updateShopNameDisplay();
+            renderClientProducts();
+            renderAdminDashboard();
+            renderAdminProducts();
+            renderCouriersTable();
+            renderOrdersTable();
+            populateCourierProductSelect();
+        });
+
+        function saveState() {
+            localStorage.setItem('perlia_shop_name', state.shopName);
+            localStorage.setItem('perlia_products', JSON.stringify(state.products));
+            localStorage.setItem('perlia_orders', JSON.stringify(state.orders));
+            localStorage.setItem('perlia_couriers', JSON.stringify(state.couriers));
+        }
+
+        function switchView(view) {
+            const client = document.getElementById('client-view');
+            const admin = document.getElementById('admin-view');
+            const clientBtn = document.getElementById('btn-view-client');
+            const adminBtn = document.getElementById('btn-view-admin');
+            client.classList.toggle('hidden', view !== 'client');
+            admin.classList.toggle('hidden', view !== 'admin');
+            clientBtn.className = view === 'client'
+                ? 'px-4 py-2 rounded-lg bg-skybrand-600 text-white hover:bg-skybrand-700'
+                : 'px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200';
+            adminBtn.className = view === 'admin'
+                ? 'px-4 py-2 rounded-lg bg-skybrand-600 text-white hover:bg-skybrand-700'
+                : 'px-4 py-2 rounded-lg bg-gray-100 text-gray-700 hover:bg-gray-200';
+        }
+
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-tab-content').forEach(el => el.classList.add('hidden'));
+            document.getElementById(`admin-${tab}`).classList.remove('hidden');
+            document.querySelectorAll('nav button').forEach(el => el.classList.remove('active-tab'));
+            document.getElementById(`tab-${tab}`).classList.add('active-tab');
+        }
+
+        function updateShopNameDisplay() {
+            document.getElementById('shop-name-display').textContent = state.shopName;
+            const input = document.getElementById('shop-name-input');
+            if (input) input.value = state.shopName;
+            document.title = `${state.shopName} — Boutique en ligne`;
+        }
+
+        function handleSaveShopName(event) {
+            event.preventDefault();
+            const name = document.getElementById('shop-name-input').value.trim();
+            if (!name) return showToast('Saisissez un nom de boutique.');
+            state.shopName = name;
+            saveState();
+            updateShopNameDisplay();
+            showToast('Nom de boutique enregistré.');
+        }
+
+        function renderClientProducts() {
+            const grid = document.getElementById('client-products-grid');
+            document.getElementById('client-products-count').textContent = `${state.products.length} produit(s)`;
+            if (!state.products.length) {
+                grid.innerHTML = '<p class="text-gray-500 col-span-full">Aucun produit disponible pour le moment.</p>';
+                return;
+            }
+            grid.innerHTML = state.products.map(product => `
+                <article class="bg-white rounded-2xl overflow-hidden shadow-sm border border-gray-100 flex flex-col">
+                    <div class="h-56 bg-gray-100 flex items-center justify-center overflow-hidden">
+                        ${product.image ? `<img src="${escapeHTML(product.image)}" alt="${escapeHTML(product.name)}" class="w-full h-full object-cover" onerror="this.style.display='none'">` : '<i class="fa-solid fa-bag-shopping text-5xl text-gray-300"></i>'}
+                    </div>
+                    <div class="p-5 flex flex-col flex-1">
+                        <h3 class="font-bold text-lg">${escapeHTML(product.name)}</h3>
+                        <p class="text-sm text-gray-500 mt-2 flex-1">${escapeHTML(product.description || '')}</p>
+                        <p class="text-xl font-bold text-skybrand-700 mt-4">${formatMoney(product.priceDakar)} <span class="text-xs font-normal text-gray-500">à Dakar</span></p>
+                        <p class="text-sm text-gray-500 mt-1">${formatMoney(product.priceRegion)} en région</p>
+                        <p class="text-xs ${Number(product.stock) > 0 ? 'text-green-600' : 'text-red-600'} mt-2">${Number(product.stock) > 0 ? 'Disponible' : 'Rupture de stock'}</p>
+                        <button onclick="openOrderModal('${String(product.id).replace(/'/g, '')}')" ${Number(product.stock) <= 0 ? 'disabled' : ''} class="mt-4 w-full rounded-lg py-3 text-white ${Number(product.stock) > 0 ? 'bg-skybrand-600 hover:bg-skybrand-700' : 'bg-gray-300 cursor-not-allowed'}">Commander</button>
+                    </div>
+                </article>
+            `).join('');
+        }
+
+        function openOrderModal(productId) {
+            const product = state.products.find(p => p.id === productId);
+            if (!product || Number(product.stock) <= 0) return showToast('Ce produit est indisponible.');
+            document.getElementById('order-form').reset();
+            document.getElementById('order-product-id').value = productId;
+            document.getElementById('order-quantity').value = 1;
+            document.getElementById('delivery-zone').value = 'Dakar';
+            document.getElementById('order-modal').classList.remove('hidden');
+            updateOrderTotal();
+        }
+
+        function closeOrderModal() {
+            document.getElementById('order-modal').classList.add('hidden');
+        }
+
+        function closeSuccessModal() {
+            document.getElementById('success-modal').classList.add('hidden');
+        }
+
+        function updateOrderTotal() {
+            const productId = document.getElementById('order-product-id').value;
+            const product = state.products.find(p => p.id === productId);
+            if (!product) return;
+            const zone = document.getElementById('delivery-zone').value;
+            const quantity = Math.max(1, Number(document.getElementById('order-quantity').value) || 1);
+            const price = Number(zone === 'Région' ? product.priceRegion : product.priceDakar);
+            document.getElementById('order-total').textContent = formatMoney(price * quantity);
+        }
+
+        function handleConfirmOrder(event) {
+            event.preventDefault();
+            const productId = document.getElementById('order-product-id').value;
+            const product = state.products.find(p => p.id === productId);
+            if (!product) return showToast('Produit introuvable.');
+            const customerName = document.getElementById('customer-name').value.trim();
+            const customerPhone = document.getElementById('customer-phone').value.trim();
+            const zone = document.getElementById('delivery-zone').value;
+            const address = document.getElementById('delivery-address').value.trim();
+            const quantity = Number(document.getElementById('order-quantity').value);
+            if (!customerName || !customerPhone || !address || !Number.isInteger(quantity) || quantity < 1) return showToast('Vérifiez les informations saisies.');
+            if (quantity > Number(product.stock)) return showToast(`Stock insuffisant. Disponible : ${product.stock}.`);
+
+            const unitPrice = Number(zone === 'Région' ? product.priceRegion : product.priceDakar);
+            const order = {
+                id: `CMD-${Date.now().toString().slice(-8)}`,
+                date: new Date().toLocaleString('fr-FR'),
+                customerName,
+                customerPhone,
+                zone,
+                address,
+                productId: product.id,
+                productName: product.name,
+                quantity,
+                total: unitPrice * quantity,
+                payment: document.getElementById('payment-method').value,
+                storageStatus: 'Enregistrée localement'
+            };
+            product.stock = Number(product.stock) - quantity;
+            state.orders.unshift(order);
+            saveState();
+            closeOrderModal();
+            document.getElementById('success-order-id').textContent = `Référence : ${order.id}`;
+            document.getElementById('success-modal').classList.remove('hidden');
+            renderClientProducts();
+            renderAdminDashboard();
+            renderAdminProducts();
+            renderOrdersTable();
+            populateCourierProductSelect();
+        }
+
+        function handleAddProduct(event) {
+            event.preventDefault();
+            const name = document.getElementById('product-name').value.trim();
+            const priceDakar = Number(document.getElementById('product-price-dakar').value);
+            const priceRegion = Number(document.getElementById('product-price-region').value);
+            const stock = Number(document.getElementById('product-stock').value);
+            const image = document.getElementById('product-image').value.trim();
+            const description = document.getElementById('product-description').value.trim();
+            if (!name || priceDakar < 0 || priceRegion < 0 || stock < 0) return showToast('Vérifiez les informations du produit.');
+            state.products.push({ id: `p-${Date.now()}`, name, priceDakar, priceRegion, stock, image, description });
+            saveState();
+            event.target.reset();
+            renderClientProducts();
+            renderAdminProducts();
+            renderAdminDashboard();
+            populateCourierProductSelect();
+            showToast('Produit ajouté.');
+        }
+
+        function deleteProduct(productId) {
+            if (!confirm('Voulez-vous vraiment supprimer ce produit ?')) return;
+            state.products = state.products.filter(p => p.id !== productId);
+            saveState();
+            renderClientProducts();
+            renderAdminProducts();
+            renderAdminDashboard();
+            populateCourierProductSelect();
+            showToast('Produit supprimé.');
+        }
+
+        function renderAdminProducts() {
+            const tbody = document.getElementById('admin-products-table-body');
+            if (!state.products.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-gray-500">Aucun produit.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = state.products.map(p => `
+                <tr class="border-t">
+                    <td class="p-3 font-medium">${escapeHTML(p.name)}</td>
+                    <td class="p-3">${formatMoney(p.priceDakar)}</td>
+                    <td class="p-3">${formatMoney(p.priceRegion)}</td>
+                    <td class="p-3">${Number(p.stock)}</td>
+                    <td class="p-3"><button onclick="deleteProduct('${String(p.id).replace(/'/g, '')}')" class="text-red-600 hover:underline">Supprimer</button></td>
+                </tr>`).join('');
+        }
+
+        function populateCourierProductSelect() {
+            const select = document.getElementById('courier-product');
+            if (!select) return;
+            select.innerHTML = state.products.length
+                ? state.products.map(p => `<option value="${escapeHTML(p.id)}">${escapeHTML(p.name)} (stock : ${Number(p.stock)})</option>`).join('')
+                : '<option value="">Aucun produit disponible</option>';
+        }
+
+        function handleAssignCourier(event) {
+            event.preventDefault();
+            const name = document.getElementById('courier-name').value.trim();
+            const productId = document.getElementById('courier-product').value;
+            const quantity = Number(document.getElementById('courier-quantity').value);
+            const product = state.products.find(p => p.id === productId);
+            if (!name || !product || !Number.isInteger(quantity) || quantity < 1) return showToast('Vérifiez les informations saisies.');
+            if (quantity > Number(product.stock)) return showToast(`Stock insuffisant. Disponible : ${product.stock}.`);
+            product.stock = Number(product.stock) - quantity;
+            state.couriers.push({ id: `liv-${Date.now()}`, name, productId, productName: product.name, quantity, status: 'En cours' });
+            saveState();
+            event.target.reset();
+            renderCouriersTable();
+            renderAdminDashboard();
+            renderAdminProducts();
+            renderClientProducts();
+            populateCourierProductSelect();
+            showToast('Stock affecté au livreur.');
+        }
+
+        function updateCourierStatus(courierId, status) {
+            const courier = state.couriers.find(c => c.id === courierId);
+            if (!courier) return;
+            courier.status = status;
+            saveState();
+            renderCouriersTable();
+            renderAdminDashboard();
+            showToast('Statut mis à jour.');
+        }
+
+        function renderCouriersTable() {
+            const tbody = document.getElementById('couriers-table-body');
+            if (!state.couriers.length) {
+                tbody.innerHTML = '<tr><td colspan="5" class="p-4 text-gray-500">Aucun stock affecté à un livreur.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = state.couriers.map(c => `
+                <tr class="border-t">
+                    <td class="p-3">${escapeHTML(c.name)}</td>
+                    <td class="p-3">${escapeHTML(c.productName)}</td>
+                    <td class="p-3">${Number(c.quantity)}</td>
+                    <td class="p-3">${escapeHTML(c.status)}</td>
+                    <td class="p-3"><select aria-label="Statut de ${escapeHTML(c.name)}" onchange="updateCourierStatus('${String(c.id).replace(/'/g, '')}', this.value)" class="border rounded px-2 py-1">
+                        <option ${c.status === 'En cours' ? 'selected' : ''}>En cours</option>
+                        <option ${c.status === 'Livré' ? 'selected' : ''}>Livré</option>
+                        <option ${c.status === 'Retour' ? 'selected' : ''}>Retour</option>
+                    </select></td>
+                </tr>`).join('');
+        }
+
+        function renderAdminDashboard() {
+            document.getElementById('dashboard-revenue').textContent = formatMoney(state.orders.reduce((sum, o) => sum + Number(o.total || 0), 0));
+            document.getElementById('dashboard-orders').textContent = state.orders.length;
+            document.getElementById('dashboard-stock').textContent = state.products.reduce((sum, p) => sum + Number(p.stock || 0), 0);
+            document.getElementById('dashboard-in-courier').textContent = state.couriers.filter(c => c.status === 'En cours').reduce((sum, c) => sum + Number(c.quantity || 0), 0);
+        }
+
+        function renderOrdersTable() {
+            const tbody = document.getElementById('orders-table-body');
+            if (!state.orders.length) {
+                tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-gray-500">Aucune commande pour le moment.</td></tr>';
+                return;
+            }
+            tbody.innerHTML = state.orders.map(o => `
+                <tr class="border-t align-top">
+                    <td class="p-3"><strong>${escapeHTML(o.id)}</strong><br><span class="text-xs text-gray-500">${escapeHTML(o.date)}</span></td>
+                    <td class="p-3">${escapeHTML(o.customerName)}<br><span class="text-gray-500">${escapeHTML(o.customerPhone)}</span></td>
+                    <td class="p-3">${escapeHTML(o.zone)}<br><span class="text-gray-500">${escapeHTML(o.address)}</span></td>
+                    <td class="p-3">${escapeHTML(o.productName)}<br>Qté : ${Number(o.quantity)}</td>
+                    <td class="p-3 font-semibold">${formatMoney(o.total)}</td>
+                    <td class="p-3">${escapeHTML(o.payment)}</td>
+                    <td class="p-3"><span class="text-amber-700 text-xs">Enregistrée dans ce navigateur</span></td>
+                </tr>`).join('');
+        }
+
+        function copyAdLink() {
+            const url = new URL(window.location.href);
+            url.searchParams.set('mode', 'client');
+            const link = url.toString();
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(link).then(() => showToast('Lien client copié.')).catch(() => prompt('Copiez ce lien client :', link));
+            } else {
+                prompt('Copiez ce lien client :', link);
+            }
+        }
+
+        function exportToCSV() {
+            if (!state.orders.length) return showToast('Aucune commande à exporter.');
+            const headers = ['ID', 'Date', 'Client', 'Téléphone', 'Zone', 'Adresse', 'Produit', 'Quantité', 'Total FCFA', 'Paiement'];
+            const rows = state.orders.map(o => [o.id, o.date, o.customerName, o.customerPhone, o.zone, o.address, o.productName, o.quantity, o.total, o.payment]);
+            const csv = [headers, ...rows].map(row => row.map(value => `"${String(value ?? '').replace(/"/g, '""')}"`).join(';')).join('\r\n');
+            const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'commandes-boutique.csv';
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+            showToast('Export CSV téléchargé.');
+        }
+
+        function formatMoney(amount) {
+            return `${Number(amount || 0).toLocaleString('fr-FR')} FCFA`;
+        }
+
+        function escapeHTML(value) {
+            return String(value ?? '').replace(/[&<>"']/g, char => ({
+                '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+            })[char]);
+        }
+
+        let toastTimeout;
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.classList.remove('hidden');
+            clearTimeout(toastTimeout);
+            toastTimeout = setTimeout(() => toast.classList.add('hidden'), 3000);
+        }
+    </script>
+</body>
+</html>
